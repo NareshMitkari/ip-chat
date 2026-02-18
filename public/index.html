@@ -1,190 +1,328 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IP Chat</title>
-  <script src="/socket.io/socket.io.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Live Chat</title>
+<script src="/socket.io/socket.io.js"></script>
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', sans-serif;
-    }
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif;}
 
-    body {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+body{
+  height:100vh;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
 
-    .chat-container {
-      width: 100%;
-      max-width: 500px;
-      height: 95vh;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(20px);
-      border-radius: 20px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
+/* LOGIN SCREEN */
+.login{
+  width:100%;
+  max-width:420px;
+  height:420px;
+  background:rgba(255,255,255,0.15);
+  backdrop-filter:blur(20px);
+  border-radius:20px;
+  padding:30px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:20px;
+  box-shadow:0 20px 50px rgba(0,0,0,0.3);
+}
 
-    .chat-header {
-      padding: 18px;
-      text-align: center;
-      font-size: 18px;
-      font-weight: bold;
-      color: white;
-      background: rgba(0,0,0,0.2);
-      letter-spacing: 1px;
-    }
+.login h2{
+  color:white;
+  text-align:center;
+}
 
-    .messages {
-      flex: 1;
-      padding: 15px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+.login input{
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  font-size:15px;
+}
 
-    .message {
-      max-width: 75%;
-      padding: 10px 14px;
-      border-radius: 15px;
-      font-size: 14px;
-      animation: fadeIn 0.2s ease-in-out;
-    }
+.login button{
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:#6a5acd;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
 
-    .me {
-      align-self: flex-end;
-      background: #6a5acd;
-      color: white;
-      border-bottom-right-radius: 5px;
-    }
+/* CHAT UI */
+.chat{
+  width:100%;
+  max-width:500px;
+  height:95vh;
+  background:rgba(255,255,255,0.15);
+  backdrop-filter:blur(20px);
+  border-radius:20px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  box-shadow:0 20px 50px rgba(0,0,0,0.3);
+}
 
-    .other {
-      align-self: flex-start;
-      background: white;
-      color: #333;
-      border-bottom-left-radius: 5px;
-    }
+.header{
+  padding:15px;
+  text-align:center;
+  font-weight:bold;
+  color:white;
+  background:rgba(0,0,0,0.2);
+}
 
-    .time {
-      font-size: 10px;
-      margin-top: 4px;
-      opacity: 0.7;
-    }
+.messages{
+  flex:1;
+  padding:15px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
 
-    .system {
-      text-align: center;
-      font-size: 12px;
-      color: #eee;
-    }
+.message{
+  max-width:75%;
+  padding:10px 14px;
+  border-radius:15px;
+  font-size:14px;
+  animation:fadeIn .2s ease-in-out;
+}
 
-    .chat-footer {
-      display: flex;
-      padding: 12px;
-      background: rgba(0,0,0,0.2);
-      gap: 10px;
-    }
+.self{
+  align-self:flex-end;
+  background:#6a5acd;
+  color:white;
+  border-bottom-right-radius:5px;
+}
 
-    .chat-footer input {
-      flex: 1;
-      padding: 12px;
-      border-radius: 12px;
-      border: none;
-      outline: none;
-      font-size: 14px;
-    }
+.other{
+  align-self:flex-start;
+  background:white;
+  color:#333;
+  border-bottom-left-radius:5px;
+}
 
-    .chat-footer button {
-      padding: 12px 18px;
-      border-radius: 12px;
-      border: none;
-      background: #6a5acd;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.2s;
-    }
+.username{
+  font-size:11px;
+  font-weight:bold;
+  margin-bottom:3px;
+  opacity:.8;
+  color: black;
+}
 
-    .chat-footer button:hover {
-      background: #5941c9;
-    }
+.time{
+  font-size:10px;
+  margin-top:4px;
+  opacity:.6;
+}
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(5px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+.message img{
+  max-width:100%;
+  border-radius:10px;
+  cursor:pointer;
+  margin-top:5px;
+}
 
-    /* 📱 Mobile Fullscreen */
-    @media (max-width: 600px) {
-      body {
-        align-items: stretch;
-      }
-      .chat-container {
-        height: 100vh;
-        border-radius: 0;
-      }
-    }
-  </style>
+.system{
+  text-align:center;
+  font-size:12px;
+  color:#eee;
+}
+
+/* IMAGE PREVIEW BOX */
+.preview-box{
+  display:none;
+  padding:10px;
+  background:rgba(0,0,0,0.1);
+}
+
+.preview-box img{
+  max-height:120px;
+  border-radius:10px;
+}
+
+.preview-box button{
+  position:absolute;
+  top:-8px;
+  right:-8px;
+  background:red;
+  color:white;
+  border:none;
+  border-radius:50%;
+  width:22px;
+  height:22px;
+  font-size:12px;
+  cursor:pointer;
+}
+
+/* FOOTER */
+.footer{
+  display:flex;
+  padding:10px;
+  background:rgba(0,0,0,0.2);
+  gap:8px;
+  align-items:center;
+}
+
+.footer input[type=text]{
+  flex:1;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  font-size:14px;
+}
+
+.footer label{
+  cursor:pointer;
+  font-size:22px;
+  color:white;
+}
+
+.footer button{
+  padding:12px 15px;
+  border:none;
+  border-radius:12px;
+  background:#6a5acd;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(5px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+/* MOBILE */
+@media(max-width:600px){
+  body{align-items:stretch;}
+  .chat{height:100vh;border-radius:0;}
+}
+</style>
 </head>
 
 <body>
 
-<div class="chat-container">
-  <div class="chat-header">🚀 Live Chat With Naresh</div>
+<!-- LOGIN -->
+<div class="login" id="login">
+  <h2>💬 Enter Your Name</h2>
+  <input id="username" placeholder="Your name"/>
+  <button onclick="join()">Start Chat</button>
+</div>
+
+<!-- CHAT -->
+<div class="chat" id="chat" style="display:none;">
+  <div class="header">🚀 Live Chat Developed By Naresh</div>
   <div class="messages" id="messages"></div>
-  <div class="chat-footer">
-    <input id="input" placeholder="Type message..." />
+
+  <!-- IMAGE PREVIEW -->
+  <div class="preview-box" id="previewBox">
+    <div style="position:relative; display:inline-block;">
+      <img id="previewImg">
+      <button onclick="cancelPreview()">✕</button>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <label for="file">📎</label>
+    <input type="file" id="file" hidden accept="image/*">
+    <input type="text" id="input" placeholder="Type message...">
     <button onclick="send()">Send</button>
   </div>
 </div>
 
 <script>
-  const socket = io();
-  const messages = document.getElementById("messages");
+const socket = io();
+let imageData = null;
 
-  function send() {
-    const input = document.getElementById("input");
-    if (input.value.trim() !== "") {
-      socket.emit("message", input.value);
-      input.value = "";
-    }
-  }
+const messages = document.getElementById("messages");
+const previewBox = document.getElementById("previewBox");
+const previewImg = document.getElementById("previewImg");
 
-  socket.on("message", (data) => {
-    const div = document.createElement("div");
+function join(){
+  const name=document.getElementById("username").value.trim();
+  if(!name) return;
+  socket.emit("join",name);
+  document.getElementById("login").style.display="none";
+  document.getElementById("chat").style.display="flex";
+}
 
-    // If user matches your IP logic, mark as 'me'
-    const isMe = data.isMe; 
+function send(){
+  const input=document.getElementById("input");
+  if(!input.value && !imageData) return;
 
-    div.className = "message " + (isMe ? "me" : "other");
-    div.innerHTML = `
-      ${data.text}
-      <div class="time">${data.time}</div>
-    `;
+  socket.emit("message",{ text:input.value, image:imageData });
 
-    messages.appendChild(div);
-    messages.scrollTop = messages.scrollHeight;
-  });
+  input.value="";
+  imageData=null;
+  previewBox.style.display="none";
+  previewImg.src="";
+  document.getElementById("file").value="";
+}
 
-  socket.on("system", (msg) => {
-    const div = document.createElement("div");
-    div.className = "system";
-    div.innerText = msg;
-    messages.appendChild(div);
-  });
+socket.on("message",(data)=>{
+  const div=document.createElement("div");
+  div.className="message "+(data.self?"self":"other");
 
-  document.getElementById("input").addEventListener("keypress", function(e) {
-    if (e.key === "Enter") send();
-  });
+  div.innerHTML=`
+    <div class="username">${data.user}</div>
+    ${data.text?`<div>${data.text}</div>`:""}
+    ${data.image?`<img src="${data.image}" onclick="openFull('${data.image}')">`:""}
+    <div class="time">${data.time}</div>
+  `;
+
+  messages.appendChild(div);
+  messages.scrollTop=messages.scrollHeight;
+});
+
+socket.on("system",(msg)=>{
+  const div=document.createElement("div");
+  div.className="system";
+  div.innerText=msg;
+  messages.appendChild(div);
+});
+
+document.getElementById("input").addEventListener("keypress",e=>{
+  if(e.key==="Enter") send();
+});
+
+document.getElementById("file").addEventListener("change",function(){
+  const file=this.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    imageData=reader.result;
+    previewImg.src=imageData;
+    previewBox.style.display="block";
+  };
+  reader.readAsDataURL(file);
+});
+
+function cancelPreview(){
+  imageData=null;
+  previewBox.style.display="none";
+  previewImg.src="";
+  document.getElementById("file").value="";
+}
+
+function openFull(src){
+  const div=document.createElement("div");
+  div.style.position="fixed";
+  div.style.inset="0";
+  div.style.background="rgba(0,0,0,0.9)";
+  div.style.display="flex";
+  div.style.justifyContent="center";
+  div.style.alignItems="center";
+  div.innerHTML=`<img src="${src}" style="max-width:95%;max-height:95%;">`;
+  div.onclick=()=>div.remove();
+  document.body.appendChild(div);
+}
 </script>
 
 </body>
