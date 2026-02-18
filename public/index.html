@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IP Chat</title>
+  <script src="/socket.io/socket.io.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 500px;
+      height: 95vh;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 18px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      color: white;
+      background: rgba(0,0,0,0.2);
+      letter-spacing: 1px;
+    }
+
+    .messages {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .message {
+      max-width: 75%;
+      padding: 10px 14px;
+      border-radius: 15px;
+      font-size: 14px;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    .me {
+      align-self: flex-end;
+      background: #6a5acd;
+      color: white;
+      border-bottom-right-radius: 5px;
+    }
+
+    .other {
+      align-self: flex-start;
+      background: white;
+      color: #333;
+      border-bottom-left-radius: 5px;
+    }
+
+    .time {
+      font-size: 10px;
+      margin-top: 4px;
+      opacity: 0.7;
+    }
+
+    .system {
+      text-align: center;
+      font-size: 12px;
+      color: #eee;
+    }
+
+    .chat-footer {
+      display: flex;
+      padding: 12px;
+      background: rgba(0,0,0,0.2);
+      gap: 10px;
+    }
+
+    .chat-footer input {
+      flex: 1;
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .chat-footer button {
+      padding: 12px 18px;
+      border-radius: 12px;
+      border: none;
+      background: #6a5acd;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .chat-footer button:hover {
+      background: #5941c9;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 📱 Mobile Fullscreen */
+    @media (max-width: 600px) {
+      body {
+        align-items: stretch;
+      }
+      .chat-container {
+        height: 100vh;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="chat-container">
+  <div class="chat-header">🚀 Live Chat With Naresh</div>
+  <div class="messages" id="messages"></div>
+  <div class="chat-footer">
+    <input id="input" placeholder="Type message..." />
+    <button onclick="send()">Send</button>
+  </div>
+</div>
+
+<script>
+  const socket = io();
+  const messages = document.getElementById("messages");
+
+  function send() {
+    const input = document.getElementById("input");
+    if (input.value.trim() !== "") {
+      socket.emit("message", input.value);
+      input.value = "";
+    }
+  }
+
+  socket.on("message", (data) => {
+    const div = document.createElement("div");
+
+    // If user matches your IP logic, mark as 'me'
+    const isMe = data.isMe; 
+
+    div.className = "message " + (isMe ? "me" : "other");
+    div.innerHTML = `
+      ${data.text}
+      <div class="time">${data.time}</div>
+    `;
+
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+  });
+
+  socket.on("system", (msg) => {
+    const div = document.createElement("div");
+    div.className = "system";
+    div.innerText = msg;
+    messages.appendChild(div);
+  });
+
+  document.getElementById("input").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") send();
+  });
+</script>
+
+</body>
+</html>
