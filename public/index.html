@@ -1,329 +1,63 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Live Chat</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NM app</title>
+<link rel="stylesheet" href="style.css">
 <script src="/socket.io/socket.io.js"></script>
-
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif;}
-
-body{
-  height:100vh;
-  background:linear-gradient(135deg,#667eea,#764ba2);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-
-/* LOGIN SCREEN */
-.login{
-  width:100%;
-  max-width:420px;
-  height:420px;
-  background:rgba(255,255,255,0.15);
-  backdrop-filter:blur(20px);
-  border-radius:20px;
-  padding:30px;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  gap:20px;
-  box-shadow:0 20px 50px rgba(0,0,0,0.3);
-}
-
-.login h2{
-  color:white;
-  text-align:center;
-}
-
-.login input{
-  padding:14px;
-  border:none;
-  border-radius:12px;
-  font-size:15px;
-}
-
-.login button{
-  padding:14px;
-  border:none;
-  border-radius:12px;
-  background:#6a5acd;
-  color:white;
-  font-weight:bold;
-  cursor:pointer;
-}
-
-/* CHAT UI */
-.chat{
-  width:100%;
-  max-width:500px;
-  height:95vh;
-  background:rgba(255,255,255,0.15);
-  backdrop-filter:blur(20px);
-  border-radius:20px;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-  box-shadow:0 20px 50px rgba(0,0,0,0.3);
-}
-
-.header{
-  padding:15px;
-  text-align:center;
-  font-weight:bold;
-  color:white;
-  background:rgba(0,0,0,0.2);
-}
-
-.messages{
-  flex:1;
-  padding:15px;
-  overflow-y:auto;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-
-.message{
-  max-width:75%;
-  padding:10px 14px;
-  border-radius:15px;
-  font-size:14px;
-  animation:fadeIn .2s ease-in-out;
-}
-
-.self{
-  align-self:flex-end;
-  background:#6a5acd;
-  color:white;
-  border-bottom-right-radius:5px;
-}
-
-.other{
-  align-self:flex-start;
-  background:white;
-  color:#333;
-  border-bottom-left-radius:5px;
-}
-
-.username{
-  font-size:11px;
-  font-weight:bold;
-  margin-bottom:3px;
-  opacity:.8;
-  color: black;
-}
-
-.time{
-  font-size:10px;
-  margin-top:4px;
-  opacity:.6;
-}
-
-.message img{
-  max-width:100%;
-  border-radius:10px;
-  cursor:pointer;
-  margin-top:5px;
-}
-
-.system{
-  text-align:center;
-  font-size:12px;
-  color:#eee;
-}
-
-/* IMAGE PREVIEW BOX */
-.preview-box{
-  display:none;
-  padding:10px;
-  background:rgba(0,0,0,0.1);
-}
-
-.preview-box img{
-  max-height:120px;
-  border-radius:10px;
-}
-
-.preview-box button{
-  position:absolute;
-  top:-8px;
-  right:-8px;
-  background:red;
-  color:white;
-  border:none;
-  border-radius:50%;
-  width:22px;
-  height:22px;
-  font-size:12px;
-  cursor:pointer;
-}
-
-/* FOOTER */
-.footer{
-  display:flex;
-  padding:10px;
-  background:rgba(0,0,0,0.2);
-  gap:8px;
-  align-items:center;
-}
-
-.footer input[type=text]{
-  flex:1;
-  padding:12px;
-  border:none;
-  border-radius:12px;
-  font-size:14px;
-}
-
-.footer label{
-  cursor:pointer;
-  font-size:22px;
-  color:white;
-}
-
-.footer button{
-  padding:12px 15px;
-  border:none;
-  border-radius:12px;
-  background:#6a5acd;
-  color:white;
-  font-weight:bold;
-  cursor:pointer;
-}
-
-@keyframes fadeIn{
-  from{opacity:0;transform:translateY(5px);}
-  to{opacity:1;transform:translateY(0);}
-}
-
-/* MOBILE */
-@media(max-width:600px){
-  body{align-items:stretch;}
-  .chat{height:100vh;border-radius:0;}
-}
-</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 </head>
-
 <body>
 
-<!-- LOGIN -->
-<div class="login" id="login">
-  <h2>💬 Enter Your Name</h2>
-  <input id="username" placeholder="Your name"/>
-  <button onclick="join()">Start Chat</button>
-</div>
-
-<!-- CHAT -->
-<div class="chat" id="chat" style="display:none;">
-  <div class="header">🚀 Live Chat Developed By Naresh</div>
-  <div class="messages" id="messages"></div>
-
-  <!-- IMAGE PREVIEW -->
-  <div class="preview-box" id="previewBox">
-    <div style="position:relative; display:inline-block;">
-      <img id="previewImg">
-      <button onclick="cancelPreview()">✕</button>
+<!-- AUTH -->
+<div id="auth" class="screen center">
+  <div class="auth-box">
+    <h2>Login / Register</h2>
+    <input id="username" placeholder="Username">
+    <input id="password" type="password" placeholder="Password">
+    <div class="buttons">
+      <button onclick="register()">Register</button>
+      <button onclick="login()">Login</button>
     </div>
   </div>
+</div>
 
-  <!-- FOOTER -->
-  <div class="footer">
-    <label for="file">📎</label>
-    <input type="file" id="file" hidden accept="image/*">
-    <input type="text" id="input" placeholder="Type message...">
-    <button onclick="send()">Send</button>
+<!-- CHAT LIST -->
+<div id="chatList" class="screen hidden">
+  <div class="header">Chats App Developed By Naresh Mitkari</div>
+  <div id="userList" class="chat-list"></div>
+</div>
+
+<!-- CHAT SCREEN -->
+<div id="chatScreen" class="screen hidden">
+  <div class="chat-header">
+    <span class="back" onclick="closeChat()">←</span>
+    <span id="chatName" class="chat-name"></span>
+  </div>
+
+  <div id="messages" class="messages"></div>
+
+  <div class="chat-footer">
+    <i class="fas fa-paperclip upload-icon" onclick="triggerFile()"></i>
+    <input type="file" id="fileInput" onchange="handlePreview(this.files[0])" hidden>
+
+    <div class="input-wrapper">
+      <div id="imagePreview" class="image-preview hidden">
+        <img id="previewImg" src="">
+        <span class="remove-preview" onclick="removePreview()">×</span>
+      </div>
+
+      <input id="msgInput" placeholder="Type a message">
+      <button class="send-btn" onclick="sendTextOrImage()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+        </svg>
+      </button>
+    </div>
   </div>
 </div>
 
-<script>
-const socket = io();
-let imageData = null;
-
-const messages = document.getElementById("messages");
-const previewBox = document.getElementById("previewBox");
-const previewImg = document.getElementById("previewImg");
-
-function join(){
-  const name=document.getElementById("username").value.trim();
-  if(!name) return;
-  socket.emit("join",name);
-  document.getElementById("login").style.display="none";
-  document.getElementById("chat").style.display="flex";
-}
-
-function send(){
-  const input=document.getElementById("input");
-  if(!input.value && !imageData) return;
-
-  socket.emit("message",{ text:input.value, image:imageData });
-
-  input.value="";
-  imageData=null;
-  previewBox.style.display="none";
-  previewImg.src="";
-  document.getElementById("file").value="";
-}
-
-socket.on("message",(data)=>{
-  const div=document.createElement("div");
-  div.className="message "+(data.self?"self":"other");
-
-  div.innerHTML=`
-    <div class="username">${data.user}</div>
-    ${data.text?`<div>${data.text}</div>`:""}
-    ${data.image?`<img src="${data.image}" onclick="openFull('${data.image}')">`:""}
-    <div class="time">${data.time}</div>
-  `;
-
-  messages.appendChild(div);
-  messages.scrollTop=messages.scrollHeight;
-});
-
-socket.on("system",(msg)=>{
-  const div=document.createElement("div");
-  div.className="system";
-  div.innerText=msg;
-  messages.appendChild(div);
-});
-
-document.getElementById("input").addEventListener("keypress",e=>{
-  if(e.key==="Enter") send();
-});
-
-document.getElementById("file").addEventListener("change",function(){
-  const file=this.files[0];
-  if(!file) return;
-  const reader=new FileReader();
-  reader.onload=()=>{
-    imageData=reader.result;
-    previewImg.src=imageData;
-    previewBox.style.display="block";
-  };
-  reader.readAsDataURL(file);
-});
-
-function cancelPreview(){
-  imageData=null;
-  previewBox.style.display="none";
-  previewImg.src="";
-  document.getElementById("file").value="";
-}
-
-function openFull(src){
-  const div=document.createElement("div");
-  div.style.position="fixed";
-  div.style.inset="0";
-  div.style.background="rgba(0,0,0,0.9)";
-  div.style.display="flex";
-  div.style.justifyContent="center";
-  div.style.alignItems="center";
-  div.innerHTML=`<img src="${src}" style="max-width:95%;max-height:95%;">`;
-  div.onclick=()=>div.remove();
-  document.body.appendChild(div);
-}
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
