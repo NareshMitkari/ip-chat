@@ -8,34 +8,31 @@ const io = new Server(server);
 
 app.use(express.static("public"));
 
-function getClientIP(socket) {
-  let ip = socket.handshake.address;
-
-  if (ip.includes("::ffff:")) {
-    ip = ip.split("::ffff:")[1];
-  }
-
-  return ip.replace(/\./g, "_");
-}
-
 io.on("connection", (socket) => {
-  const ip = getClientIP(socket);
-  const username = `User_${ip}`;
 
-  socket.username = username;
+  socket.on("join", (username) => {
+    socket.username = username;
+    socket.broadcast.emit("system", `${username} joined`);
+  });
 
-  io.emit("system", `${username} joined`);
-
-  socket.on("message", (msg) => {
-    io.emit("message", {
+  socket.on("message", (data) => {
+    const msgData = {
       user: socket.username,
-      text: msg,
+      text: data.text,
+      image: data.image || null,
       time: new Date().toLocaleTimeString()
-    });
+    };
+
+    // Send to others
+    socket.broadcast.emit("message", msgData);
+
+    // Send back to sender (mark as own message)
+    socket.emit("message", { ...msgData, self: true });
   });
 
   socket.on("disconnect", () => {
-    io.emit("system", `${username} left`);
+    if (socket.username)
+      socket.broadcast.emit("system", `${socket.username} left`);
   });
 });
 
